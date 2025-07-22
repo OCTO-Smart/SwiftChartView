@@ -31,6 +31,9 @@ public struct BarChartView : View {
             }
         }
     }
+
+    @State private var currentPeriodString: String = ""
+
     var isFullWidth:Bool {
         return self.formSize == ChartForm.large
     }
@@ -60,9 +63,10 @@ public struct BarChartView : View {
                             .font(.headline)
                             .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.textColor : self.style.textColor)
                     }else{
-                        Text("\(self.currentValue, specifier: self.valueSpecifier)")
+                        Text("\(self.currentPeriodString)")
+                        //Text("\(self.currentValue, specifier: self.valueSpecifier)")
                             .font(.headline)
-                            .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.textColor : self.style.textColor)
+                            .foregroundColor(self.colorScheme == .dark ? self.style.textColor : self.style.textColor)
                     }
                     if(self.formSize == ChartForm.large && self.legend != nil && !showValue) {
                         Text(self.legend!)
@@ -76,22 +80,33 @@ public struct BarChartView : View {
                         .imageScale(.large)
                         .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.legendTextColor : self.style.legendTextColor)
                 }.padding()
-                BarChartRow(data: data.points.map{$0.1},
-                            accentColor: self.colorScheme == .dark ? self.darkModeStyle.accentColor : self.style.accentColor,
-                            gradient: self.colorScheme == .dark ? self.darkModeStyle.gradientColor : self.style.gradientColor,
-                            touchLocation: self.$touchLocation)
-                if self.legend != nil  && self.formSize == ChartForm.medium && !self.showLabelValue{
+                ZStack(alignment: .topLeading) {
+                    BarChartRow(
+                        data: data.points.map { $0.1 },
+                        accentColor: self.colorScheme == .dark ? self.darkModeStyle.accentColor : self.style.accentColor,
+                        gradient: self.colorScheme == .dark ? self.darkModeStyle.gradientColor : self.style.gradientColor,
+                        touchLocation: self.$touchLocation
+                    ).padding(.top, 30)
+
+                    if self.showLabelValue && self.data.valuesGiven, let current = self.getCurrentValue() {
+                        LabelView(
+                            arrowOffset: self.getArrowOffset(touchLocation: self.touchLocation),
+                            title: .constant(String(format: valueSpecifier, current.1)),
+                            measuredWidth: $labelWidth
+                        )
+                        .position(x: self.getLabelViewCenterX(touchLocation: self.touchLocation), y: 0)
+                        .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.legendTextColor : self.style.legendTextColor)
+                        .transition(.opacity)
+                    }
+                }
+                if self.legend != nil {
                     Text(self.legend!)
                         .font(.headline)
                         .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.legendTextColor : self.style.legendTextColor)
                         .padding()
-                }else if (self.data.valuesGiven && self.getCurrentValue() != nil) {
-                    LabelView(arrowOffset: self.getArrowOffset(touchLocation: self.touchLocation),
-                              title: .constant(self.getCurrentValue()!.0))
-                        .offset(x: self.getLabelViewOffset(touchLocation: self.touchLocation), y: -6)
-                        .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.legendTextColor : self.style.legendTextColor)
+                } else {
+                    Spacer().frame(height: 20) //
                 }
-                
             }
         }.frame(minWidth:self.formSize.width,
                 maxWidth: self.isFullWidth ? .infinity : self.formSize.width,
@@ -102,7 +117,8 @@ public struct BarChartView : View {
                     self.touchLocation = value.location.x/self.formSize.width
                     self.showValue = true
                     self.currentValue = self.getCurrentValue()?.1 ?? 0
-                    if(self.data.valuesGiven && self.formSize == ChartForm.medium) {
+                    self.currentPeriodString = self.getCurrentValue()?.0 ?? ""
+                    if(self.data.valuesGiven) {
                         self.showLabelValue = true
                     }
                 })
@@ -136,11 +152,16 @@ public struct BarChartView : View {
             return .constant(0)
         }
     }
-    
-    func getLabelViewOffset(touchLocation:CGFloat) -> CGFloat {
-        return min(self.formSize.width-110,max(10,(self.touchLocation * self.formSize.width) - 50))
+
+    @State private var labelWidth: CGFloat = 40
+
+    func getLabelViewCenterX(touchLocation: CGFloat) -> CGFloat {
+        let halfWidth = labelWidth / 2
+        let minCenter =  halfWidth - 12
+        let maxCenter = formSize.width - halfWidth
+        return min(max(touchLocation * formSize.width, minCenter), maxCenter)
     }
-    
+
     func getCurrentValue() -> (String,Double)? {
         guard self.data.points.count > 0 else { return nil}
         let index = max(0,min(self.data.points.count-1,Int(floor((self.touchLocation*self.formSize.width)/(self.formSize.width/CGFloat(self.data.points.count))))))
@@ -153,8 +174,8 @@ struct ChartView_Previews : PreviewProvider {
     static var previews: some View {
         BarChartView(data: TestData.values ,
                      title: "Model 3 sales",
-                     legend: "Quarterly",
-                     valueSpecifier: "%.0f")
+                     legend: nil, form: ChartForm.extraLarge, dropShadow: false,
+                     valueSpecifier: "%.1f")
     }
 }
 #endif

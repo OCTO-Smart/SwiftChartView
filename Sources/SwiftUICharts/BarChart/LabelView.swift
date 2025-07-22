@@ -7,24 +7,50 @@
 //
 
 import SwiftUI
+import Combine
+
 
 struct LabelView: View {
     @Binding var arrowOffset: CGFloat
-    @Binding var title:String
-    var body: some View {
-        VStack{
-            ArrowUp().fill(Color.white).frame(width: 20, height: 12, alignment: .center).shadow(color: Color.gray, radius: 8, x: 0, y: 0).offset(x: getArrowOffset(offset:self.arrowOffset), y: 12)
-            ZStack{
-                RoundedRectangle(cornerRadius: 8).frame(width: 100, height: 32, alignment: .center).foregroundColor(Color.white).shadow(radius: 8)
-                Text(self.title).font(.caption).bold()
-                ArrowUp().fill(Color.white).frame(width: 20, height: 12, alignment: .center).zIndex(999).offset(x: getArrowOffset(offset:self.arrowOffset), y: -20)
+    @Binding var title: String
+    @Binding var measuredWidth: CGFloat
 
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                Text(self.title)
+                    .font(.caption)
+                    .bold()
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        GeometryReader { geo in
+                            if #available(iOS 14.0, *) {
+                                Color.clear
+                                    .onAppear {
+                                        self.measuredWidth = geo.size.width
+                                    }
+                                    .onChange(of: geo.size.width) { newValue in
+                                        self.measuredWidth = newValue
+                                    }
+                            } else {
+                                Color.clear
+                                     .onAppear {
+                                         self.measuredWidth = geo.size.width
+                                     }
+                                     .onReceive(Just(geo.size.width)) { newValue in
+                                         self.measuredWidth = newValue
+                                     }
+                            }
+                        }
+                    )
             }
+            .fixedSize()
         }
     }
-    
+
     func getArrowOffset(offset: CGFloat) -> CGFloat {
-        return max(-36,min(36, offset))
+        return max(-36, min(36, offset))
     }
 }
 
@@ -41,6 +67,7 @@ struct ArrowUp: Shape {
 
 struct LabelView_Previews: PreviewProvider {
     static var previews: some View {
-        LabelView(arrowOffset: .constant(0), title: .constant("Tesla model 3"))
+        LabelView(arrowOffset: .constant(0), title: .constant("Tesla model 3"),
+                  measuredWidth: .constant(100))
     }
 }
