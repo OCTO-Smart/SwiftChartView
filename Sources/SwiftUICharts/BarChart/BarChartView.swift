@@ -66,7 +66,7 @@ public struct BarChartView : View {
                         Text("\(self.currentPeriodString)")
                         //Text("\(self.currentValue, specifier: self.valueSpecifier)")
                             .font(.headline)
-                            .foregroundColor(self.colorScheme == .dark ? self.style.textColor : self.style.textColor)
+                            .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.textColor : self.style.textColor)
                     }
                     if(self.formSize == ChartForm.large && self.legend != nil && !showValue) {
                         Text(self.legend!)
@@ -157,7 +157,7 @@ public struct BarChartView : View {
 
     func getLabelViewCenterX(touchLocation: CGFloat) -> CGFloat {
         let halfWidth = labelWidth / 2
-        let minCenter =  halfWidth - 12
+        let minCenter =  halfWidth - 4
         let maxCenter = formSize.width - halfWidth
         return min(max(touchLocation * formSize.width, minCenter), maxCenter)
     }
@@ -174,7 +174,7 @@ struct ChartView_Previews : PreviewProvider {
     static var previews: some View {
         BarChartView(data: TestData.values ,
                      title: "Model 3 sales",
-                     legend: nil, form: ChartForm.extraLarge, dropShadow: false,
+                     legend: nil, form: ChartForm.extraLarge, dropShadow: true,
                      valueSpecifier: "%.1f")
     }
 }

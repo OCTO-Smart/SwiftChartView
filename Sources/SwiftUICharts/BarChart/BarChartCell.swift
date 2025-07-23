@@ -14,7 +14,7 @@ public struct BarChartCell : View {
     var width: Float
     var numberOfDataPoints: Int
     var cellWidth: Double {
-        return Double(width)/(Double(numberOfDataPoints) * 1.5)
+        return Double(width)
     }
     var accentColor: Color
     var gradient: GradientColor?
