@@ -27,7 +27,7 @@ public struct BarChartCell : View {
                 .fill(LinearGradient(gradient: gradient?.getGradient() ?? GradientColor(start: accentColor, end: accentColor).getGradient(), startPoint: .bottom, endPoint: .top))
             }
             .frame(width: CGFloat(self.cellWidth))
-            .scaleEffect(CGSize(width: 1, height: self.scaleValue), anchor: .bottom)
+            .scaleEffect(CGSize(width: 1, height: max(0.01, self.scaleValue)), anchor: .bottom)
             .onAppear(){
                 self.scaleValue = self.value
             }

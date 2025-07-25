@@ -77,7 +77,7 @@ public struct BarChartView : View {
                     }
                     Spacer()
                     self.cornerImage
-                        .imageScale(.large)
+                        .imageScale(.medium)
                         .foregroundColor(self.colorScheme == .dark ? self.darkModeStyle.legendTextColor : self.style.legendTextColor)
                 }.padding()
                 ZStack(alignment: .topLeading) {
@@ -112,7 +112,7 @@ public struct BarChartView : View {
                 maxWidth: self.isFullWidth ? .infinity : self.formSize.width,
                 minHeight:self.formSize.height,
                 maxHeight:self.formSize.height)
-            .gesture(DragGesture()
+            .simultaneousGesture(DragGesture()
                 .onChanged({ value in
                     self.touchLocation = value.location.x/self.formSize.width
                     self.showValue = true
